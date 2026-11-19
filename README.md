@@ -1,4 +1,7 @@
-# self-edit-kit
+# self-edit-kit-2
+
+Copy of [self-edit-kit](https://github.com/aperz/self-edit-kit) (2026-11-19) for testing the editor without Netlify: GitHub Pages + the Sveltia login service on Cloudflare Workers.
+
 
 Starter repo for a client site the **client edits herself** in the
 **editor** at `/admin/` ([Sveltia CMS](https://sveltiacms.app), pinned

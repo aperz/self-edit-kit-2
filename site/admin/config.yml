@@ -13,7 +13,7 @@
 
 backend:
   name: github
-  repo: aperz/self-edit-kit
+  repo: aperz/self-edit-kit-2
   branch: main
   commit_messages:
     create: "Edytor: nowy wpis {{collection}} „{{slug}}”"
@@ -28,8 +28,8 @@ backend:
 # after Zapisz does the same job: the editor waits for the checks, then merges.
 publish_mode: preview
 
-site_url: https://aperz.github.io/self-edit-kit/
-display_url: https://aperz.github.io/self-edit-kit/
+site_url: https://aperz.github.io/self-edit-kit-2/
+display_url: https://aperz.github.io/self-edit-kit-2/
 
 media_folder: /site/img/uploads
 public_folder: /img/uploads

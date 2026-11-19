@@ -1,5 +1,5 @@
-# Publish main to GitHub Pages: https://aperz.github.io/self-edit-kit/
-# The site lives in a subfolder here (/self-edit-kit/); that needs no setting,
+# Publish main to GitHub Pages: https://aperz.github.io/self-edit-kit-2/
+# The site lives in a subfolder here (/self-edit-kit-2/); that needs no setting,
 # because the build writes every internal link relative to its page.
 # Same build + checks as CI and Netlify; if they fail, nothing is published
 # and the previous version stays online. Only main is published (no PR

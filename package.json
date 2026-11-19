@@ -1,5 +1,5 @@
 {
-  "name": "self-edit-kit",
+  "name": "self-edit-kit-2",
   "private": true,
   "type": "module",
   "description": "Pracownia Osnowa: rendering with Eleventy. PROTECTED file; content validation and checks are in checks/ (Python).",
