@@ -2,6 +2,13 @@
 
 Copy of [self-edit-kit](https://github.com/aperz/self-edit-kit) (2026-11-19) for testing the editor without Netlify: GitHub Pages + the Sveltia login service on Cloudflare Workers.
 
+Previews without Netlify: `.github/workflows/preview.yml` publishes every pull request to
+`https://aperz.github.io/self-edit-kit-2/pr-preview/pr-<N>/` (noindex, removed when the PR closes) and
+posts a commit status `preview` with that address, which the editor shows as the draft's preview link
+(`backend.preview_context`). Pages must serve the `gh-pages` branch; `pages.yml` deploys `main` to its
+root without touching `pr-preview/`. The GitHub App needs **Commit statuses: Read-only** for the editor
+to see the link.
+
 
 Starter repo for a client site the **client edits herself** in the
 **editor** at `/admin/` ([Sveltia CMS](https://sveltiacms.app), pinned

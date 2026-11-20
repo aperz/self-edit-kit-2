@@ -1,27 +1,28 @@
 # Publish main to GitHub Pages: https://aperz.github.io/self-edit-kit-2/
 # The site lives in a subfolder here (/self-edit-kit-2/); that needs no setting,
 # because the build writes every internal link relative to its page.
-# Same build + checks as CI and Netlify; if they fail, nothing is published
-# and the previous version stays online. Only main is published (no PR
-# previews; those come from Netlify). PROTECTED file.
+# Same build + checks as CI; if they fail, nothing is published and the
+# previous version stays online. PROTECTED file.
+#
+# Pages serves the `gh-pages` branch (Settings → Pages → Deploy from a branch →
+# gh-pages, root). The live site sits at its root; preview.yml puts each pull
+# request's preview under pr-preview/pr-N/ on the same branch. So this
+# deploy must never delete pr-preview/ (clean-exclude) and must never
+# force-push (force: false), or it would wipe the open previews.
 name: pages
 on:
   push:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
-  pages: write      # allowed to publish the site
-  id-token: write   # proves to Pages that this run comes from this repo
+  contents: write  # pushes the built site to the gh-pages branch
 concurrency:
-  group: pages
+  # Shared with preview.yml: both push to gh-pages, one at a time.
+  group: gh-pages
   cancel-in-progress: false  # an older build never overwrites a newer one
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,8 +37,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: python3 checks/validate_content.py && npx --no @11ty/eleventy && python3 checks/check_site.py
-      - uses: actions/upload-pages-artifact@v3
+      - uses: JamesIves/github-pages-deploy-action@v4.9.0
         with:
-          path: public
-      - id: deploy
-        uses: actions/deploy-pages@v4
+          branch: gh-pages
+          folder: public
+          clean-exclude: pr-preview/
+          force: false
