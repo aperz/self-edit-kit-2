@@ -14,6 +14,11 @@
 backend:
   name: github
   repo: aperz/self-edit-kit-2
+  # Login through Sveltia's own login service on Cloudflare Workers
+  # (~/Projects/sveltia-cms-auth, branch stratus-deploy). It uses the GitHub App
+  # "Stratus Site Editor", which only sees the repos it's installed on, and only
+  # hands tokens to the hostnames in its ALLOWED_DOMAINS (aperz.github.io).
+  base_url: https://sveltia-cms-auth.stratus-data.workers.dev
   branch: main
   commit_messages:
     create: "Edytor: nowy wpis {{collection}} „{{slug}}”"
