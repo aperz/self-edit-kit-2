@@ -1,0 +1,225 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms@0.253.2/schema/sveltia-cms.json
+#
+# Editor configuration. PROTECTED: only the owner changes it.
+#
+# Every save opens its own pull request (publish_mode: preview), Netlify
+# builds a preview of it, and "Publikuj" merges it. main requires the
+# site-checks job, so the editor's Publish waits for the checks (auto-merge)
+# and refuses to publish a change that fails them.
+#
+# The fields mirror checks/validate_content.py (lengths, price as a number,
+# dates, what a blog post may contain), so most mistakes are caught in the
+# form before they ever reach CI.
+
+backend:
+  name: github
+  repo: aperz/self-edit-kit-2
+  # Login through Sveltia's own login service on Cloudflare Workers
+  # (~/Projects/sveltia-cms-auth, branch stratus-deploy). It uses the GitHub App
+  # "Stratus Site Editor", which only sees the repos it's installed on, and only
+  # hands tokens to the hostnames in its ALLOWED_DOMAINS (aperz.github.io).
+  base_url: https://sveltia-cms-auth.stratus-data.workers.dev
+  # The preview link of a draft comes from the commit status "preview" that
+  # .github/workflows/preview.yml posts with the preview's address
+  # (…/pr-preview/pr-N/). Naming it keeps the CMS from picking site-checks.
+  preview_context: preview
+  branch: main
+  commit_messages:
+    create: "Edytor: nowy wpis {{collection}} „{{slug}}”"
+    update: "Edytor: zmiana {{collection}} „{{slug}}”"
+    delete: "Edytor: usunięto {{collection}} „{{slug}}”"
+    uploadMedia: "Edytor: nowe zdjęcie {{path}}"
+    deleteMedia: "Edytor: usunięto zdjęcie {{path}}"
+
+# No `direct_publish` ("Zapisz i opublikuj" in one click): it commits straight
+# to main without a pull request, and the `checks` ruleset rejects any commit
+# that hasn't passed site-checks, so the save would fail. Opublikuj right
+# after Zapisz does the same job: the editor waits for the checks, then merges.
+# allow_incomplete_drafts: false: the editor refuses to save while a required
+# field is empty and marks it on the form. Sveltia's default lets drafts be
+# saved half-filled, but every save is a pull request that the checks
+# reject ("pole … jest puste"), with the reason only visible on GitHub.
+publish_mode:
+  type: preview
+  allow_incomplete_drafts: false
+
+site_url: https://aperz.github.io/self-edit-kit-2/
+display_url: https://aperz.github.io/self-edit-kit-2/
+
+media_folder: /site/img/uploads
+public_folder: /img/uploads
+
+# Slugs (blog post addresses) and uploaded file names: ASCII only, with
+# Polish letters transliterated first (clean_accents: ł→l, ą→a…), so
+# "Wełna czy len?" becomes welna-czy-len. Lowercase and hyphens between
+# words are the defaults.
+slug:
+  encoding: ascii
+  clean_accents: true
+
+# Applies to every upload, the blog's media folder included.
+media_libraries:
+  # Stock photo search (Lorem Picsum, Unsplash, …) is on by default in Sveltia
+  # and inserts photos as links to another site. The checks refuse external
+  # images (they'd leak visitor IPs without consent), so a stock photo could be
+  # picked here and then fail at publish time. Switched off: only her uploads.
+  stock_assets:
+    providers: []
+  default:
+    config:
+      # Only stops absurd files. The 500 KB rule is enforced on the RESULT by
+      # the checks; the transformations below shrink phone photos well under it.
+      # (Sveltia's docs don't say whether this limit applies before or after
+      # shrinking, so it must not be 500 KB or normal phone photos would bounce.)
+      max_file_size: 20000000  # 20 MB
+      slugify_filename: true
+      transformations:
+        raster_image:
+          format: webp
+          quality: 82
+          width: 1600
+          height: 1600
+
+collections:
+  - name: strona
+    label: Strona
+    description: Teksty, ceny i terminy na stronie głównej.
+    files:
+      - name: glowna
+        label: Strona główna
+        file: content/strona.json
+        format: json
+        fields:
+          - name: hero
+            label: Nagłówek strony
+            widget: object
+            fields:
+              - { name: title, label: Tytuł, widget: string, maxlength: 80 }
+              - { name: lead, label: Podtytuł, widget: text, maxlength: 300 }
+              - { name: button, label: Napis na przycisku, widget: string, maxlength: 30 }
+
+          - name: o_mnie
+            label: O mnie
+            widget: object
+            fields:
+              - { name: heading, label: Nagłówek, widget: string, maxlength: 60 }
+              - { name: photo, label: Zdjęcie, widget: image, choose_url: false, accept: "image/jpeg,image/png,image/webp,image/heic,image/avif", hint: "Możesz wgrać zdjęcie prosto z telefonu — zostanie zmniejszone automatycznie." }
+              - { name: photo_alt, label: Opis zdjęcia (dla osób niewidomych), widget: string, maxlength: 200 }
+              - name: text
+                label: Tekst
+                widget: text
+                maxlength: 2000
+                hint: "Pusta linia = nowy akapit. **pogrubienie**, [tekst linku](https://adres)."
+
+          - name: oferta
+            label: Oferta
+            widget: object
+            fields:
+              - { name: heading, label: Nagłówek, widget: string, maxlength: 60 }
+              - name: cards
+                label: Karty oferty
+                label_singular: karta
+                widget: list
+                min: 1
+                max: 6
+                summary: "{{fields.title}} — {{fields.price}} zł"
+                fields:
+                  - { name: title, label: Nazwa, widget: string, maxlength: 80 }
+                  - { name: text, label: Opis, widget: text, maxlength: 400 }
+                  - { name: price, label: Cena (zł brutto), widget: number, value_type: int, min: 1, max: 100000 }
+
+          - name: terminy
+            label: Terminy
+            widget: object
+            fields:
+              - { name: heading, label: Nagłówek, widget: string, maxlength: 60 }
+              - name: items
+                label: Terminy
+                label_singular: termin
+                widget: list
+                summary: "{{fields.date}} — {{fields.text}}"
+                hint: "Kolejność nie ma znaczenia — strona sama ułoży terminy od najbliższego."
+                fields:
+                  - { name: date, label: Data, widget: datetime, time_format: false, format: "YYYY-MM-DD" }
+                  - { name: end_date, label: "Data końca (tylko dla kilkudniowych)", widget: datetime, time_format: false, format: "YYYY-MM-DD", required: false }
+                  - { name: text, label: Opis, widget: string, maxlength: 200 }
+
+          - name: kontakt
+            label: Kontakt
+            widget: object
+            fields:
+              - { name: heading, label: Nagłówek, widget: string, maxlength: 60 }
+              - { name: text, label: Tekst, widget: text, maxlength: 500, required: false }
+              - { name: email, label: E-mail, widget: string, pattern: ['^[^@\s]+@[^@\s]+\.[^@\s]+$', "Wpisz poprawny adres e-mail"] }
+              - { name: phone, label: Telefon, widget: string, pattern: ['^\+?[0-9 ]{9,15}$', "Same cyfry i spacje"] }
+              - { name: address, label: Adres, widget: string, maxlength: 120 }
+
+          - name: seo
+            label: Wyszukiwarki (Google)
+            widget: object
+            collapsed: true
+            fields:
+              - { name: title, label: Tytuł w wynikach wyszukiwania, widget: string, maxlength: 70 }
+              - { name: description, label: Opis w wynikach wyszukiwania, widget: text, maxlength: 170 }
+
+  # The blog: one Markdown file per post in content/blog/<slug>.md, shown at
+  # /blog/<slug>/. checks/validate_content.py accepts exactly these five
+  # front-matter fields plus the body; the options below keep the editor
+  # inside what it accepts.
+  - name: blog
+    label: Blog
+    label_singular: wpis
+    description: Wpisy na blogu. Najnowszy pokazuje się na górze listy.
+    folder: content/blog
+    extension: md
+    format: frontmatter
+    create: true
+    delete: true
+    # Address from the title: "Wełna czy len?" → welna-czy-len (see `slug`
+    # at the top). The pattern is the same rule the validator applies to
+    # file names.
+    slug:
+      template: "{{title}}"
+      pattern: ['^[a-z0-9]+(-[a-z0-9]+)*$', "Tylko małe litery bez polskich znaków, cyfry i myślniki"]
+    slug_length: 60
+    preview_path: /blog/{{slug}}/
+    # Double-quote every front-matter value: the validator's small YAML
+    # reader then never has to guess what a value means.
+    yaml_quote: true
+    summary: "{{title}} ({{date}})"
+    sortable_fields: [date, title]
+    # Post photos in their own folder; same size limit and WebP shrinking
+    # as all uploads (media_libraries above).
+    media_folder: /site/img/blog
+    public_folder: /img/blog
+    fields:
+      - { name: title, label: Tytuł, widget: string, maxlength: 100 }
+      - { name: date, label: Data wpisu, widget: datetime, time_format: false, format: "YYYY-MM-DD", default: "{{now}}" }
+      - name: excerpt
+        label: Zajawka
+        widget: string
+        maxlength: 300
+        hint: "Jedno–dwa zdania na liście wpisów i w Google."
+      - name: cover
+        label: Zdjęcie na górze wpisu
+        widget: image
+        choose_url: false  # only uploaded photos, never an address from another site
+        accept: image/jpeg,image/png,image/webp,image/heic,image/avif  # no GIFs: animations aren't shrunk and fail the 500 KB check
+        hint: "Możesz wgrać zdjęcie prosto z telefonu — zostanie zmniejszone automatycznie."
+      - { name: cover_alt, label: Opis zdjęcia (dla osób niewidomych), widget: string, maxlength: 200 }
+      - name: body
+        label: Treść
+        widget: richtext
+        # Only what the site renders: headings (h2/h3; the title is the h1),
+        # bold, italic, lists, quotes, links and photos. No code blocks,
+        # tables or raw Markdown/HTML mode. Links: https://, mailto: or a
+        # page of this site from the root (/#terminy, /blog/<slug>/);
+        # checked when the site is built.
+        modes: [rich_text]
+        buttons: [bold, italic, link, heading-two, heading-three, bulleted-list, numbered-list, quote]
+        editor_components: [image]
+        linked_images: false
+        hint: "Linki: https://…, adres e-mail albo strona tej witryny, np. /#terminy lub /blog/welna-czy-len/. Filmy, mapy i formularze dodaje Aleksandra."
+        pattern:
+          - '^(?![\s\S]*<[A-Za-z!/])(?![\s\S]*\]\(\s*<?(?!https://|mailto:|/(?!/))[^)\s]*)(?![\s\S]*\]\(\s*<?/admin)[\s\S]*$'
+          - "W treści jest kod HTML albo link, który nie zaczyna się od https://, adresu e-mail (mailto:) lub / (strona tej witryny, np. /#terminy). Do edytora (/admin/) linkować nie można."
