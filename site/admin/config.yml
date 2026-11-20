@@ -19,6 +19,10 @@ backend:
   # "Stratus Site Editor", which only sees the repos it's installed on, and only
   # hands tokens to the hostnames in its ALLOWED_DOMAINS (aperz.github.io).
   base_url: https://sveltia-cms-auth.stratus-data.workers.dev
+  # The preview link of a draft comes from the commit status "preview" that
+  # .github/workflows/preview.yml posts with the preview's address
+  # (…/pr-preview/pr-N/). Naming it keeps the CMS from picking site-checks.
+  preview_context: preview
   branch: main
   commit_messages:
     create: "Edytor: nowy wpis {{collection}} „{{slug}}”"

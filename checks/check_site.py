@@ -69,6 +69,7 @@ PROTECTED = [
     "checks/check_site.py",
     ".github/workflows/checks.yml",
     ".github/workflows/pages.yml",
+    ".github/workflows/preview.yml",
     ".github/CODEOWNERS",
     ".claude/settings.json",
     ".githooks/pre-commit",

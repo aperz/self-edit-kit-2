@@ -136,7 +136,8 @@ Aleksandra.
    your branch and open a pull request to `main`; never push to `main`
    directly.
 4. Tell her the change is ready as a **podgląd** (preview): the preview link
-   appears on the pull request within a minute or two (Netlify posts it). She
+   appears on the pull request within a minute or two (a comment with the
+   address …/pr-preview/pr-<number>/, posted by the preview workflow). She
    opens it, checks it on her phone too, and then presses **Merge** — that
    publishes it.
 
